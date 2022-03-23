@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decisions, Decisions, Decisions</title>
+    <meta name="viewport" content="width=device-width, initial-scale = 1.0">
+    <script type="text/javascript" src="Winwheel.js"></script>
+    <script type="text/javascript" src="TweenMax.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>        
+                
+    </style>
+    </head>
+    <body>
+        <div id="wrapper" align="center">
+                <div id="top">
+                    <div class="options">
+                        <select id="predefined1" onchange="selection1()">
+                            <option>Option 1</option>
+                            <option value="Captain">Captain</option>
+                            <option value="First Leg">First Leg</option>
+                            <option value="Go">Go</option>
+                            <option value="Higher">Higher</option>
+                            <option value="Me">Me</option>
+                            <option value="Yes">Yes</option>
+                            <option value="Left">Left</option>
+                            <option value="">Custom 1</option>
+                        </select>
+                        <select id="predefined2" onchange="selection2()">
+                            <option>Option 2</option>
+                            <option value="First Officer">First Officer</option>
+                            <option value="Second Leg">Second Leg</option>
+                            <option value="No Go">No Go</option>
+                            <option value="Lower">Lower</option>
+                            <option value="You">You</option>
+                            <option value="No">No</option>
+                            <option value="Right">Right</option>
+                            <option value="">Custom 2</option>
+                        </select>
+                    </div>
+                    <div class="options" id="form">
+                        <input class="selection" type="text" id="option1">
+                        <input class="selection" type="text" id="option2">
+                    </div>
+                    <div class="options">
+                        <button id="customButton" onclick="makeDecision()">Custom</button>
+                    </div>
+            </div>
+               <div id="middle">
+                    <button id="spin_button" onClick="startSpin()">Spin</button>
+                </div> 
+            <div id="result">
+                <h1></h1>
+            </div>
+            <div id="bottom">
+                <div id="pin"></div>
+                <canvas id="canvas" class="the_wheel" width="450" height="450">
+                    <p style="{color: white}" align="center">Sorry, your browser doesn't support canvas. Please try another.</p>
+                </canvas>
+            </div>            
+        </div>
+        <script>
+            
+            //Fetch the predefined options and user input text boxes
+
+            var getPredefined1 = document.getElementById("predefined1");
+            var getPredefined2 = document.getElementById("predefined2");
+            var getOptionOne = document.getElementById("option1");
+            var getOptionTwo = document.getElementById("option2");
+
+            var getCustomButton = document.getElementById("customButton");
+            var getSpinButton = document.getElementById("spin_button"); 
+            
+            //Gets the title that appears as the result of a spin 
+
+            var getResult = document.getElementById("result");
+            
+            defaultOptions();
+
+            //These variables get the user input and are passed as values to the Wheel object to be written on the wheel fields
+
+            var optionOne = localStorage.getItem("optionOne");
+            var optionTwo = localStorage.getItem("optionTwo");
+
+            //Takes the values from the local storage and assigns them to the text fields on page load 
+
+            getOptionOne.value = localStorage.getItem("optionOne");
+            getOptionTwo.value = localStorage.getItem("optionTwo"); 
+                       
+            //Binds the two select elements, so that selecting an option from one selects the opposing option 
+            //from the other. It also calls the makeDecision funcion, which assigns the selected values to 
+            //the wheel and reloads the page, so that the Set button doesn't need to be pressed. 
+
+            function selection1(){
+                getPredefined2.selectedIndex = getPredefined1.selectedIndex;
+                getOptionOne.value = getPredefined1.value;
+                getOptionTwo.value = getPredefined2.value;
+                sessionStorage.setItem("wasClicked", "clicked");
+                makeDecision();
+            }
+
+            function selection2(){
+                getPredefined1.selectedIndex = getPredefined2.selectedIndex;
+                getOptionOne.value = getPredefined1.value; 
+                getOptionTwo.value = getPredefined2.value;
+                sessionStorage.setItem("wasClicked", "clicked");
+                makeDecision(); 
+            }
+
+            //Resets the form and the wheel fields to default values on page load  
+
+            function defaultOptions(){ 
+                if(sessionStorage.getItem("wasClicked") != "clicked"){
+                    localStorage.setItem("optionOne", "Captain");
+                    localStorage.setItem("optionTwo", "First Officer"); 
+                }
+                getCustomButton.style.visibility = localStorage.getItem("optionOne") == "" ? "visible" : "hidden"; 
+            }
+            
+            //Reads user input and assigns values to the variables optionOne and optionTwo, which pass those values to the wheel fields.
+            //Also, assigns those values to the title
+
+            function makeDecision(){
+
+                if(!validation()){
+                    optionOne = "Option 1";
+                }else{
+                    
+                    localStorage.setItem("optionOne", getOptionOne.value.trim()); 
+                    optionOne = localStorage.getItem("optionOne");
+                }
+
+                if(!validation()){
+                    optionTwo = "Option 2"; 
+                }else{
+                    localStorage.setItem("optionTwo", getOptionTwo.value.trim());
+                    optionTwo = localStorage.getItem("optionTwo");
+                }
+                location.reload();
+            }
+
+            function validation(){
+                if(getOptionOne.value.trim().length > 13){
+                    alert("The text shouldn't be more than 13 characters long.");
+                    return false;
+                }
+                if(getOptionTwo.value.trim().length > 13){
+                    alert("The text shouldn't be more than 13 characters long.");
+                    return false;
+                }
+                return true; 
+            }
+            
+            // Create new wheel object specifying the parameters at creation time.             
+
+            let theWheel = new Winwheel({
+                'numSegments'  : 8,     // Specify number of segments.
+                //'outerRadius'  : 212,   // Set outer radius so wheel fits inside the background.
+                'textFontSize' : 25,    // Set font size as desired.
+                'segments'     :        // Define segments including colour and text.
+                [
+                   {'fillStyle' : '#ffffff', 'text' : optionOne, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffc82c', 'text' : optionTwo, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffffff', 'text' : optionOne, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffc82c', 'text' : optionTwo, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffffff', 'text' : optionOne, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffc82c', 'text' : optionTwo, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffffff', 'text' : optionOne, 'textFillStyle' : '#000000'},
+                   {'fillStyle' : '#ffc82c', 'text' : optionTwo, 'textFillStyle' : '#000000'}
+                ],
+                'animation' :           // Specify the animation to use.
+                {
+                    'type'     : 'spinToStop',
+                    'duration' : 5,     // Duration in seconds.
+                    'spins'    : 8,     // Number of complete spins.
+                    'callbackFinished' : alertPrize
+                }
+            });
+
+            // Vars used by the code in this page to do power controls.
+            let wheelPower    = 0;
+            let wheelSpinning = false;
+
+            // -------------------------------------------------------
+            // Function to handle the onClick on the power buttons.
+            // -------------------------------------------------------
+            function powerSelected(powerLevel)
+            {
+                // Ensure that power can't be changed while wheel is spinning.
+                if (wheelSpinning == false) {
+                    
+                    wheelPower = powerLevel;
+
+                    // Light up the spin button by changing it's source image and adding a clickable class to it.
+                    document.getElementById('spin_button').src = "spin_on.png";
+                    document.getElementById('spin_button').className = "clickable";
+                }
+            }
+
+            // -------------------------------------------------------
+            // Click handler for spin button.
+            // -------------------------------------------------------
+            function startSpin()
+            {
+                // Ensure that spinning can't be clicked again while already running.
+                if (wheelSpinning == false) {
+                    // Based on the power level selected adjust the number of spins for the wheel, the more times is has
+                    // to rotate with the duration of the animation the quicker the wheel spins.
+                    if (wheelPower == 1) {
+                        theWheel.animation.spins = 3;
+                    } else if (wheelPower == 2) {
+                        theWheel.animation.spins = 8;
+                    } else if (wheelPower == 3) {
+                        theWheel.animation.spins = 15; 
+                    }
+
+                    // Disable the spin button so can't click again while wheel is spinning.
+                    document.getElementById('spin_button').src       = "spin_off.png";
+                    document.getElementById('spin_button').className = "";
+
+                    // Begin the spin animation by calling startAnimation on the wheel object.
+                    theWheel.startAnimation();
+
+                    // Set to true so that power can't be changed and spin button re-enabled during
+                    // the current animation. The user will have to reset before spinning again.
+                    wheelSpinning = true;
+                }
+            }
+
+            // -------------------------------------------------------
+            // Function for reset button.
+            // -------------------------------------------------------
+            function resetWheel()
+            {
+                getOptionOne.value = "";
+                getOptionTwo.value = ""; 
+                getResult.innerHTML = "";
+                document.getElementById("form").style.visibility = "visible"; 
+
+                theWheel.stopAnimation(false);  // Stop the animation, false as param so does not call callback function.
+                theWheel.rotationAngle = 0;     // Re-set the wheel angle to 0 degrees.
+                theWheel.draw();                // Call draw to render changes to the wheel.                
+
+                wheelSpinning = false;          // Reset to false to power buttons and spin can be clicked again.
+            }
+
+            // -------------------------------------------------------
+            // Called when the spin animation has finished by the callback feature of the wheel because I specified callback in the parameters
+            // note the indicated segment is passed in as a parmeter as 99% of the time you will want to know this to inform the user of their prize.
+            // -------------------------------------------------------
+            function alertPrize(indicatedSegment)
+            {
+                // Do basic alert of the segment text. You would probably want to do something more interesting with this information.
+                if(getResult){
+                    getResult.innerHTML = indicatedSegment.text.toUpperCase(); 
+                    getResult.style.fontSize = "150%"; 
+                    getResult.style.fontFamily = "Arial";
+                    getResult.style.color = "#ffffff";
+                }
+                getOptionOne.value = "";
+                getOptionTwo.value = ""; 
+            }
+        </script>
+    </body>
+</html>
